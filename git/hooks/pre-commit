@@ -1,0 +1,6 @@
+#!/bin/sh
+
+set -eo pipefail
+
+npm run bump-project-version
+git add package.json

@@ -1,0 +1,65 @@
+{
+	"env": {
+		"browser": true,
+		"es2021": true
+	},
+	"extends": [
+		"eslint:recommended",
+		"plugin:import/recommended",
+		"plugin:promise/recommended",
+		"plugin:@typescript-eslint/recommended"
+	],
+	"overrides": [],
+	"parser": "@typescript-eslint/parser",
+	"parserOptions": {
+		"ecmaVersion": "latest",
+		"project": [
+			"./tsconfig.json"
+		],
+		"sourceType": "module"
+	},
+	"plugins": [
+		"@typescript-eslint",
+		"import",
+		"promise"
+	],
+	"rules": {
+		"comma-dangle": [
+			"error",
+			"always-multiline"
+		],
+		"func-style": [
+			"error",
+			"expression",
+			{
+				"allowArrowFunctions": true
+			}
+		],
+		"no-duplicate-imports": "error",
+		"no-extra-semi": "error",
+		"no-loop-func": "error",
+		"prefer-arrow-callback": "error",
+		"prefer-template": "warn",
+		"quotes": [
+			"error",
+			"single",
+			{
+				"avoidEscape": true
+			}
+		],
+		"semi": [
+			"error",
+			"always"
+		],
+		"sort-imports": "off",
+		"sort-keys": "error",
+		"import/no-extraneous-dependencies": "error",
+		"no-mixed-spaces-and-tabs": "error",
+		"no-trailing-spaces": "error",
+		"no-irregular-whitespace": "error",
+		"no-whitespace-before-property": "error"
+	},
+	"settings": {
+		"import/resolver": "typescript"
+	}
+}

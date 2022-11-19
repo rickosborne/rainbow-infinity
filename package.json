@@ -1,0 +1,25 @@
+{
+	"author": {
+		"name": "Rick Osborne",
+		"url": "https://rickosborne.org"
+	},
+	"devDependencies": {
+		"@types/semver": "7.3.13",
+		"@typescript-eslint/eslint-plugin": "5.43.0",
+		"@typescript-eslint/parser": "5.43.0",
+		"eslint": "8.28.0",
+		"eslint-import-resolver-typescript": "3.5.2",
+		"eslint-plugin-import": "2.26.0",
+		"eslint-plugin-n": "15.5.1",
+		"eslint-plugin-promise": "6.1.1",
+		"semver": "7.3.8",
+		"ts-node": "10.9.1",
+		"typescript": "^4.9.3"
+	},
+	"license": "CC-BY-NC-SA-4.0",
+	"name": "rainbow-infinity",
+	"scripts": {
+		"bump-project-version": "ts-node scripts/bump-project-version.ts"
+	},
+	"version": "2022.11.6-T202744Z"
+}
