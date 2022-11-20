@@ -35,9 +35,14 @@
 				"allowArrowFunctions": true
 			}
 		],
+		"import/no-extraneous-dependencies": "error",
 		"no-duplicate-imports": "error",
 		"no-extra-semi": "error",
+		"no-irregular-whitespace": "error",
 		"no-loop-func": "error",
+		"no-mixed-spaces-and-tabs": "error",
+		"no-trailing-spaces": "error",
+		"no-whitespace-before-property": "error",
 		"prefer-arrow-callback": "error",
 		"prefer-template": "warn",
 		"quotes": [
@@ -52,12 +57,10 @@
 			"always"
 		],
 		"sort-imports": "off",
-		"sort-keys": "error",
-		"import/no-extraneous-dependencies": "error",
-		"no-mixed-spaces-and-tabs": "error",
-		"no-trailing-spaces": "error",
-		"no-irregular-whitespace": "error",
-		"no-whitespace-before-property": "error"
+		"sort-keys": [
+			"error",
+			"asc"
+		]
 	},
 	"settings": {
 		"import/resolver": "typescript"

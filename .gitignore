@@ -1,5 +1,8 @@
 # IntelliJ
 *.iml
 
-NodeJS
+# NodeJS
 node_modules/
+
+# Scratch
+.scratch/

@@ -1,10 +1,14 @@
 {
 	"compilerOptions": {
+		"esModuleInterop": true,
+		"module": "ESNext",
+		"moduleResolution": "Node16",
 		"noImplicitAny": true,
 		"noImplicitOverride": true,
 		"noImplicitReturns": true,
 		"noImplicitThis": true,
 		"noImplicitUseStrict": true,
-		"strict": true
+		"strict": true,
+		"target": "ESNext"
 	}
 }

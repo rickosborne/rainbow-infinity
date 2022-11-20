@@ -1,0 +1,12 @@
+{
+	"verbose": true,
+	"ignore": [
+		"./node_modules"
+	],
+	"execMap": {
+		"ts": "ts-node"
+	},
+	"watch": [
+		"./**/*.ts"
+	]
+}
