@@ -10,6 +10,7 @@ interface Options {
 
 const DEGREES_PER_RADIAN = 180 / Math.PI;
 
+
 export class InfinitySymbolSvg {
 	protected readonly debug: boolean;
 	protected readonly ellipseDistance: number;
@@ -80,13 +81,39 @@ ${ problems.map(p => `<tspan dy="2em" x="3em">${ p }</tspan>`).join('\n') }
 		const iy: number = f(this.intersectY);
 		const th = f(this.thickness);
 		const ht = f(this.thickness / 2);
+		const weRad = Math.atan(this.intersectY / (hd - this.intersectX));
+		const weDeg = f(weRad * DEGREES_PER_RADIAN);
+		const tdx = f(Math.cos(weRad) * ht);
+		const tdy = f(Math.sin(weRad) * ht);
 		const rightArc: string = [
-			`M ${ ix }, ${ -iy }`,
-			`a ${ ew } ${ eh } 0 1 1 0 ${ 2 * iy }`,
+			`M ${ ix + tdx }, ${ -iy + tdy }`,
+			`l ${ -tdx * 2 }, ${ -tdy * 2 }`,
+			`a ${ ew + ht } ${ eh + ht } 0 1 1 0 ${ 2 * (iy + tdy) }`,
+			`l ${ tdx * 2 }, ${ -tdy * 2 }`,
+			`a ${ ew - ht } ${ eh - ht } 0 1 0 0 ${ -2 * (iy - tdy) }`,
+			'z',
 		].join(' ');
 		const leftArc: string = [
-			`M ${ -ix }, ${ -iy }`,
-			`a ${ ew } ${ eh } 0 1 0 0 ${ 2 * iy }`,
+			`M ${ -ix - tdx }, ${ -iy + tdy }`,
+			`l ${ tdx * 2 }, ${ -tdy * 2 }`,
+			`a ${ ew + ht } ${ eh + ht } 0 1 0 0 ${ 2 * (iy + tdy) }`,
+			`l ${ -tdx * 2 }, ${ -tdy * 2 }`,
+			`a ${ ew - ht } ${ eh - ht } 0 1 1 0 ${ -2 * (iy - tdy) }`,
+			'z',
+		].join(' ');
+		const weLine: string = [
+			`M ${ -ix + tdx }, ${ iy + tdy }`,
+			`l ${ -tdx * 2 }, ${ -tdy * 2 }`,
+			`L ${ ix - tdx }, ${ -iy - tdy }`,
+			`l ${ tdx * 2 }, ${ tdy * 2 }`,
+			'z',
+		].join(' ');
+		const ewLine: string = [
+			`M ${ -ix - tdx }, ${ -iy + tdy }`,
+			`l ${ tdx * 2 }, ${ -tdy * 2 }`,
+			`L ${ ix + tdx }, ${ iy - tdy }`,
+			`l ${ -tdx * 2 }, ${ tdy * 2 }`,
+			'z',
 		].join(' ');
 		const path: string = [
 			`M ${ -ix }, ${ iy }`,
@@ -96,19 +123,18 @@ ${ problems.map(p => `<tspan dy="2em" x="3em">${ p }</tspan>`).join('\n') }
 			`a ${ ew } ${ eh } 0 1 0 0 ${ 2 * iy }`,
 			'Z',
 		].join(' ');
-		const weDeg = -f(Math.atan(iy / ix) * DEGREES_PER_RADIAN);
 		return `
-<svg xmlns="http://www.w3.org/2000/svg" stroke="none" fill="none" viewBox="0 0 ${ this.viewWidth } ${ this.viewHeight }">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" stroke="none" fill="none" viewBox="0 0 ${ this.viewWidth } ${ this.viewHeight }">
 <style>
-.part {
-	stroke: rgba(128, 128, 128, 0.9);
-	stroke-width: ${ this.thickness };
+.arc, .part {
+	stroke: none;
+	fill: rgba(128, 128, 128, 0.9);
 }
 #ew {
-	stroke: url(#ew-line);
+	fill: url(#ew-line);
 }
 #we {
-	stroke: url(#we-line);
+	fill: url(#we-line);
 }
 #debugIn {
 	fill: url(#ew-line);
@@ -118,20 +144,24 @@ ${ problems.map(p => `<tspan dy="2em" x="3em">${ p }</tspan>`).join('\n') }
 	height: 100%;
 	/* This bit of magic via: https://css-tricks.com/my-struggle-to-use-and-animate-a-conic-gradient-in-svg/ */
 	background-image: conic-gradient(
-		from ${ weDeg }deg,
+		from ${ weDeg - 90 }deg,
 		hwb(80 0% 0%),
-		hwb(180 0% 0%) ${ 180 - (2 * weDeg) }deg,
-		transparent ${ 180 - (2 * weDeg) + 0.001 }deg
+		hwb(180 0% 0%) ${ 360 - (2 * weDeg) }deg,
+		transparent ${ 360 - (2 * weDeg) + 1.001 }deg
 	);
+	--dx: ${ hd - ix };
+	--ix: ${ ix };
+	--iy: ${ iy };
+	--weDeg: ${ weDeg };
 }
 .la-colors {
 	width: 100%;
 	height: 100%;
 	background-image: conic-gradient(
-		from ${ 180 + weDeg - 0.5 }deg,
+		from ${ 90 + weDeg - 1 }deg,
 		hwb(360 0% 0%),
-		hwb(260 0% 0%) ${ 180 - (2 * weDeg) + 1 }deg,
-		transparent ${ 180 - (2 * weDeg) + 0.101 }deg
+		hwb(260 0% 0%) ${ 360 - (2 * weDeg) + 2 }deg,
+		transparent ${ 360 - (2 * weDeg) + 2.0001 }deg
 	);
 }
 </style>
@@ -144,37 +174,26 @@ ${ problems.map(p => `<tspan dy="2em" x="3em">${ p }</tspan>`).join('\n') }
 		<stop offset="0" stop-color="hwb(180 0% 0%)" />
 		<stop offset="1" stop-color="hwb(260 0% 0%)" />
 	</linearGradient>
-	<clipPath id="ra-clip">
-		<ellipse rx="${ ew + ht }" ry="${ eh + ht }" transform="translate(${ hd } 0)" />
-		<!-- <path d="${ rightArc }" /> -->
-	</clipPath>
+	<path d="${ ewLine }" id="ew-path" />
+	<path d="${ weLine }" id="we-path" />
+	<path d="${ rightArc }" id="ra-path" />
+	<path d="${ leftArc }" id="la-path" />
+</defs>
 	<mask id="ra-mask">
-		<ellipse rx="${ ew + ht }" ry="${ eh + ht }" transform="translate(${ hd } 0)" fill="white" />
-		<ellipse rx="${ ew - ht }" ry="${ eh - ht }" transform="translate(${ hd } 0)" fill="black" />
+		<use xlink:href="#ra-path" fill="white" />
 	</mask>
 	<mask id="la-mask">
-		<ellipse rx="${ ew + ht }" ry="${ eh + ht }" transform="translate(${ -hd } 0)" fill="white" />
-		<ellipse rx="${ ew - ht }" ry="${ eh - ht }" transform="translate(${ -hd } 0)" fill="black" />
+		<use xlink:href="#la-path" fill="white" />
 	</mask>
-</defs>
 <g id="ribbon" transform="translate(${ hw } ${ hh })">
-	${ this.debug ? `
-	<rect id="debugIn" x="${ -ix }" y="${ -iy }" width="${ 2 * ix }" height="${ 2 * iy }" stroke-width="1" stroke="red" />
-	<rect x="${ -hd }" y="${ -eh }" width="${ ed }" height="${ 2 * eh }" stroke-width="1" stroke="blue" />
-	<ellipse rx="${ ew }" ry="${ eh }" cx="${ -hd }" cy="0" stroke="green" stroke-width="1" />
-	<ellipse rx="${ ew }" ry="${ eh }" cx="${ hd }" cy="0" stroke="green" stroke-width="1" />
-	` : '' }
-	<line x1="${ -ix }" y1="${ iy }" x2="${ ix }" y2="${ -iy }" class="line part" id="we" />
-	<!-- <path d="${ rightArc }" id="ra" class="arc part" /> -->
-	<line x1="${ ix }" y1="${ iy }" x2="${ -ix }" y2="${ -iy }" class="line part" id="ew" />
-	<!-- <path d="${ leftArc }" id="la" class="arc part" /> -->
+	<use xlink:href="#ew-path" id="ew" class="line part" />
+	<use xlink:href="#we-path" id="we" class="line part" />
 	<foreignObject x="${ hd - ew - ht }" y="${ -eh - ht }" width="${ ew * 2 + th }" height="${ eh * 2 + th }" mask="url(#ra-mask)">
 		<div class="ra-colors" xmlns="http://www.w3.org/1999/xhtml" />
 	</foreignObject>
-	<foreignObject x="${ -hd - ew - ht }" y="${ -eh - ht }" width="${ ew * 2 + th }" height="${ eh * 2 + th }" clip-path="url(#la-clip)" mask="url(#la-mask)">
+	<foreignObject x="${ -hd - ew - ht }" y="${ -eh - ht }" width="${ ew * 2 + th }" height="${ eh * 2 + th }" mask="url(#la-mask)">
 		<div class="la-colors" xmlns="http://www.w3.org/1999/xhtml" />
 	</foreignObject>
-	<!-- <path d="${ path }" stroke="rgba(128, 128, 128, 0.9)" stroke-width="${ this.thickness }" stroke-linejoin="round" /> -->
 </g>
 </svg>
 		`.trim();
