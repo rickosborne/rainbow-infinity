@@ -1,8 +1,11 @@
+import { ellipsePerimeter } from './ellipse.js';
+
 interface Options {
 	debug?: boolean;
 	ellipseDistance: number;
 	ellipseHeight: number;
 	ellipseWidth: number;
+	segmentCount?: number;
 	thickness: number;
 	viewHeight: number;
 	viewWidth: number;
@@ -21,6 +24,7 @@ export class InfinitySymbolSvg {
 	protected readonly halfWidth: number;
 	protected readonly intersectX: number;
 	protected readonly intersectY: number;
+	protected readonly segmentCount: number;
 	protected readonly thickness: number;
 	protected readonly viewHeight: number;
 	protected readonly viewWidth: number;
@@ -44,6 +48,7 @@ export class InfinitySymbolSvg {
 		// ... and this is from the ribbon-centered origin
 		this.intersectX = this.halfDistance - rx;
 		this.intersectY = Math.sqrt((this.ellipseHeight * this.ellipseHeight) * (1 - (rx * rx) / (this.ellipseWidth * this.ellipseWidth)));
+		this.segmentCount = options.segmentCount || 20;
 	}
 
 	get validationProblems(): string[] {
@@ -55,7 +60,7 @@ export class InfinitySymbolSvg {
 	}
 
 	static fixed(n: number, nearest = 0.001): number {
-		return Math.round(n / nearest) * nearest;
+		return parseFloat(n.toFixed(0 - Math.log10(nearest)));
 	}
 
 	toString(): string {
@@ -71,19 +76,27 @@ ${ problems.map(p => `<tspan dy="2em" x="3em">${ p }</tspan>`).join('\n') }
 			`;
 		}
 		const f = InfinitySymbolSvg.fixed;
-		const hw: number = f(this.halfWidth);
-		const hh: number = f(this.halfHeight);
 		const ew: number = f(this.ellipseWidth);
 		const eh: number = f(this.ellipseHeight);
 		const hd: number = f(this.halfDistance);
 		const ix: number = f(this.intersectX);
 		const iy: number = f(this.intersectY);
-		const th = f(this.thickness);
-		const ht = f(this.thickness / 2);
+		const th = f(this.thickness);  // rounded thickness
+		const ht = f(this.thickness / 2);  // half thickness
 		const weRad = Math.atan(this.intersectY / (hd - this.intersectX));
 		const weDeg = f(weRad * DEGREES_PER_RADIAN);
-		const tdx = f(Math.cos(weRad) * ht);
-		const tdy = f(Math.sin(weRad) * ht);
+		const tdx = f(Math.cos(weRad) * ht);  // intersection point dx for thickness
+		const tdy = f(Math.sin(weRad) * ht);  // intersection point dy for thickness
+		const avw = f(this.ellipseDistance + 2 * (this.ellipseWidth + this.thickness));
+		const avh = f(2 * (this.ellipseHeight + this.thickness));
+		const hw: number = f(avw / 2);  // half width
+		const hh: number = f(avh / 2);  // half height
+		const ll: number = Math.sqrt((ix * ix) + (iy * iy));  // line length
+		const ep: number = ellipsePerimeter(this.ellipseWidth, this.ellipseHeight);
+		const ef: number = (Math.PI - weRad) / Math.PI;  // ellipse fraction
+		const pl: number = (2 * ll) + (2 * ep * ef);  // perimeter length
+		const sl: number = pl / this.segmentCount;  // segment length
+		// TODO: Consume the ribbon one segment at a time
 		const rightArc: string = [
 			`M ${ ix + tdx }, ${ -iy + tdy }`,
 			`l ${ -tdx * 2 }, ${ -tdy * 2 }`,
@@ -115,8 +128,16 @@ ${ problems.map(p => `<tspan dy="2em" x="3em">${ p }</tspan>`).join('\n') }
 			'z',
 		].join(' ');
 		return `
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" stroke="none" fill="none" viewBox="0 0 ${ this.viewWidth } ${ this.viewHeight }">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 ${ avw } ${ avh }">
 <style>/* <![CDATA[ */
+svg {
+	background-color: white;
+}
+@media screen and (prefers-color-scheme: dark) {
+	svg {
+		background-color: black;
+	}
+}
 #ew {
 	fill: url(#ew-line);
 }
@@ -141,18 +162,7 @@ ${ problems.map(p => `<tspan dy="2em" x="3em">${ p }</tspan>`).join('\n') }
 	--iy: ${ iy };
 	--weDeg: ${ weDeg };
 }
-/*@property --la-start {
-	syntax: '<color>';
-	inherits: false;
-	initial-value: red;
-}*/
-:root {
-	--la-start: hsl(360 100% 50%);
-	--la-end: hsl(270 100% 50%);
-}
 .la-colors {
-	--la-start: hsl(360 100% 50%);
-	--la-end: hsl(260 100% 50%);
 	width: 100%;
 	height: 100%;
 	background-image: conic-gradient(from ${ 90 + weDeg }deg,
@@ -168,43 +178,6 @@ ${ problems.map(p => `<tspan dy="2em" x="3em">${ p }</tspan>`).join('\n') }
 	50%  { --la-start: hsl(180 100% 50%); --la-end: hsl( 90 100% 50%); }
 	75%  { --la-start: hsl( 90 100% 50%); --la-end: hsl( 0 100% 50%); }
 	to   { --la-start: hsl(  0 100% 50%); --la-end: hsl(-90 100% 50%); }
-/*
-	from {
-		background-image: conic-gradient(from ${ 90 + weDeg }deg,
-			hsl(359 100% 50%),
-			hsl(270 100% 50%) ${ 360 - (2 * weDeg) }deg,
-			hsl(359 100% 50%)
-		);
-	}
-	25% {
-		background-image: conic-gradient(from ${ 90 + weDeg }deg,
-			hsl(270 100% 50%),
-			hsl(180 100% 50%) ${ 360 - (2 * weDeg) }deg,
-			hsl(270 100% 50%)
-		);
-	}
-	50% {
-		background-image: conic-gradient(from ${ 90 + weDeg }deg,
-			hsl(180 100% 50%),
-			hsl(90 100% 50%) ${ 360 - (2 * weDeg) }deg,
-			hsl(180 100% 50%)
-		);
-	}
-	75% {
-		background-image: conic-gradient(from ${ 90 + weDeg }deg,
-			hsl(90 100% 50%),
-			hsl(0 100% 50%) ${ 360 - (2 * weDeg) }deg,
-			hsl(90 100% 50%)
-		);
-	}
-	to {
-		background-image: conic-gradient(from ${ 90 + weDeg }deg,
-			hsl(0 100% 50%),
-			hsl(-90 100% 50%) ${ 360 - (2 * weDeg) }deg,
-			hsl(0 100% 50%)
-		);
-	}
-	*/
 }
 /* #we-start { animation: 10s infinite linear forwards we-start-anim; } */
 @keyframes we-start-anim {
@@ -262,6 +235,7 @@ ${ problems.map(p => `<tspan dy="2em" x="3em">${ p }</tspan>`).join('\n') }
 	<mask id="la-mask">
 		<use xlink:href="#la-path" fill="white" />
 	</mask>
+	<rect width="100%" height="100%" id="matte" />
 <g id="ribbon" transform="translate(${ hw } ${ hh })">
 	<use xlink:href="#ew-path" id="ew" class="line part" />
 	<use xlink:href="#we-path" id="we" class="line part" />
@@ -272,6 +246,14 @@ ${ problems.map(p => `<tspan dy="2em" x="3em">${ p }</tspan>`).join('\n') }
 		<div class="la-colors" xmlns="http://www.w3.org/1999/xhtml" />
 	</foreignObject>
 </g>
+<!--
+<text fill="red" x="3em" y="3em">
+<tspan>pl=${ f(pl) }; ep=${ f(ep) }; cc=${ f(Math.PI * 2 * this.ellipseWidth) }</tspan>
+<tspan x="3em" dy="2em">ef=${ f(ef) }; ll=${ f(ll) }</tspan>
+<tspan x="3em" dy="2em" fill="white">a1=${ f(Math.PI * 2 * Math.sqrt(((ew * ew) + (eh * eh)) / 2)) }</tspan>
+<tspan x="3em" dy="2em" fill="white">a2=${ f(Math.PI * ((3 * (ew + eh)) - Math.sqrt((3 * ew + eh) * (ew + 3 * eh)))) }</tspan>
+</text>
+-->
 </svg>
 		`.trim();
 	}
