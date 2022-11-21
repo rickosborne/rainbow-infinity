@@ -14,7 +14,7 @@ app.get('/', (req, res) => {
 	const ellipseDistance = parseFloat(String(params.ed || viewWidth / 1.75));
 	const ellipseHeight = parseFloat(String(params.eh || viewHeight / 4));
 	const ellipseWidth = parseFloat(String(params.ew || ellipseHeight));
-	const thickness = parseFloat(String(params.th || Math.max(ellipseHeight, ellipseWidth) / 4));
+	const thickness = parseFloat(String(params.th || Math.max(ellipseHeight, ellipseWidth) / 1.5));
 
 	res.status(200).contentType('image/svg+xml').send(new InfinitySymbolSvg({
 		ellipseDistance,
