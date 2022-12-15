@@ -1,7 +1,7 @@
 import * as assert from 'assert';
 import * as fs from 'fs';
 import { SemVer } from 'semver';
-import { sortedJson } from '../sorted-json';
+import { sortedJson } from '../sorted-json.js';
 
 const json: { version: string } = JSON.parse(fs.readFileSync('package.json', { encoding: 'utf-8' }));
 

@@ -2,7 +2,7 @@
  I generate an infinity symbol as an SVG path.
  */
 
-import * as minimist from 'minimist';
+import { default as minimist } from 'minimist';
 
 /**
  * <pre>
