@@ -1,4 +1,4 @@
-import { ellipsePerimeter } from './ellipse.js';
+import { InfinitySegment } from './InfinitySegment.js';
 
 interface Options {
 	debug?: boolean;
@@ -76,57 +76,27 @@ ${ problems.map(p => `<tspan dy="2em" x="3em">${ p }</tspan>`).join('\n') }
 			`;
 		}
 		const f = InfinitySymbolSvg.fixed;
-		const ew: number = f(this.ellipseWidth);
-		const eh: number = f(this.ellipseHeight);
-		const hd: number = f(this.halfDistance);
-		const ix: number = f(this.intersectX);
-		const iy: number = f(this.intersectY);
-		const th = f(this.thickness);  // rounded thickness
-		const ht = f(this.thickness / 2);  // half thickness
-		const weRad = Math.atan(this.intersectY / (hd - this.intersectX));
-		const weDeg = f(weRad * DEGREES_PER_RADIAN);
-		const tdx = f(Math.cos(weRad) * ht);  // intersection point dx for thickness
-		const tdy = f(Math.sin(weRad) * ht);  // intersection point dy for thickness
+		const ellipseWidth: number = f(this.ellipseWidth);
+		const ellipseHeight: number = f(this.ellipseHeight);
+		const halfDistance: number = f(this.halfDistance);
+		const intersectX: number = f(this.intersectX);
+		const intersectY: number = f(this.intersectY);
+		const thickness = f(this.thickness);  // rounded thickness
+		const halfThickness = f(this.thickness / 2);  // half thickness
+		const lineRadians = Math.atan(this.intersectY / (halfDistance - this.intersectX));
+		const lineDegrees = f(lineRadians * DEGREES_PER_RADIAN);
 		const avw = f(this.ellipseDistance + 2 * (this.ellipseWidth + this.thickness));
 		const avh = f(2 * (this.ellipseHeight + this.thickness));
 		const hw: number = f(avw / 2);  // half width
 		const hh: number = f(avh / 2);  // half height
-		const ll: number = Math.sqrt((ix * ix) + (iy * iy));  // line length
-		const ep: number = ellipsePerimeter(this.ellipseWidth, this.ellipseHeight);
-		const ef: number = (Math.PI - weRad) / Math.PI;  // ellipse fraction
-		const pl: number = (2 * ll) + (2 * ep * ef);  // perimeter length
-		const sl: number = pl / this.segmentCount;  // segment length
-		// TODO: Consume the ribbon one segment at a time
-		const rightArc: string = [
-			`M ${ ix + tdx }, ${ -iy + tdy }`,
-			`l ${ -tdx * 2 }, ${ -tdy * 2 }`,
-			`a ${ ew + ht } ${ eh + ht } 0 1 1 0 ${ 2 * (iy + tdy) }`,
-			`l ${ tdx * 2 }, ${ -tdy * 2 }`,
-			`a ${ ew - ht } ${ eh - ht } 0 1 0 0 ${ -2 * (iy - tdy) }`,
-			'z',
-		].join(' ');
-		const leftArc: string = [
-			`M ${ -ix - tdx }, ${ -iy + tdy }`,
-			`l ${ tdx * 2 }, ${ -tdy * 2 }`,
-			`a ${ ew + ht } ${ eh + ht } 0 1 0 0 ${ 2 * (iy + tdy) }`,
-			`l ${ -tdx * 2 }, ${ -tdy * 2 }`,
-			`a ${ ew - ht } ${ eh - ht } 0 1 1 0 ${ -2 * (iy - tdy) }`,
-			'z',
-		].join(' ');
-		const weLine: string = [
-			`M ${ -ix + tdx }, ${ iy + tdy }`,
-			`l ${ -tdx * 2 }, ${ -tdy * 2 }`,
-			`L ${ ix - tdx }, ${ -iy - tdy }`,
-			`l ${ tdx * 2 }, ${ tdy * 2 }`,
-			'z',
-		].join(' ');
-		const ewLine: string = [
-			`M ${ -ix - tdx }, ${ -iy + tdy }`,
-			`l ${ tdx * 2 }, ${ -tdy * 2 }`,
-			`L ${ ix + tdx }, ${ iy - tdy }`,
-			`l ${ -tdx * 2 }, ${ tdy * 2 }`,
-			'z',
-		].join(' ');
+		const entireInfinity = new InfinitySegment('ribbon', {
+			ellipseHeight,
+			ellipseWidth,
+			halfDistance,
+			intersectX,
+			intersectY,
+			thickness,
+		});
 		return `
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 ${ avw } ${ avh }">
 <style>/* <![CDATA[ */
@@ -152,22 +122,22 @@ svg {
 	height: 100%;
 	/* This bit of magic via: https://css-tricks.com/my-struggle-to-use-and-animate-a-conic-gradient-in-svg/ */
 	background-image: conic-gradient(
-		from ${ weDeg - 90 }deg,
+		from ${ lineDegrees - 90 }deg,
 		hwb(80 0% 0%),
-		hwb(180 0% 0%) ${ 360 - (2 * weDeg) }deg,
+		hwb(180 0% 0%) ${ 360 - (2 * lineDegrees) }deg,
 		hwb(80 0% 0%)
 	);
-	--dx: ${ hd - ix };
-	--ix: ${ ix };
-	--iy: ${ iy };
-	--weDeg: ${ weDeg };
+	--dx: ${ halfDistance - intersectX };
+	--ix: ${ intersectX };
+	--iy: ${ intersectY };
+	--weDeg: ${ lineDegrees };
 }
 .la-colors {
 	width: 100%;
 	height: 100%;
-	background-image: conic-gradient(from ${ 90 + weDeg }deg,
+	background-image: conic-gradient(from ${ 90 + lineDegrees }deg,
 		hwb(360 0% 0%),
-		hwb(260 0% 0%) ${ 360 - (2 * weDeg) }deg,
+		hwb(260 0% 0%) ${ 360 - (2 * lineDegrees) }deg,
 		hwb(360 0% 0%)
 	);
 	/* animation: 10s infinite linear forwards la-anim; */
@@ -216,18 +186,15 @@ svg {
 }
 /* ]]> */</style>
 <defs>
-	<linearGradient id="we-line" x1="${ -ix }" y1="${ iy }" x2="${ ix }" y2="${ -iy }" gradientUnits="userSpaceOnUse" >
+	<linearGradient id="we-line" x1="${ -intersectX }" y1="${ intersectY }" x2="${ intersectX }" y2="${ -intersectY }" gradientUnits="userSpaceOnUse" >
 		<stop offset="0" stop-color="hwb(0 0% 0%)" id="we-start" />
 		<stop offset="1" stop-color="hwb(80 0% 0%)" id="we-end" />
 	</linearGradient>
-	<linearGradient id="ew-line" x1="${ ix }" y1="${ iy }" x2="${ -ix }" y2="${ -iy }" gradientUnits="userSpaceOnUse" >
+	<linearGradient id="ew-line" x1="${ intersectX }" y1="${ intersectY }" x2="${ -intersectX }" y2="${ -intersectY }" gradientUnits="userSpaceOnUse" >
 		<stop offset="0" stop-color="hwb(180 0% 0%)" id="ew-start" />
 		<stop offset="1" stop-color="hwb(260 0% 0%)" id="ew-end" />
 	</linearGradient>
-	<path d="${ ewLine }" id="ew-path" />
-	<path d="${ weLine }" id="we-path" />
-	<path d="${ rightArc }" id="ra-path" />
-	<path d="${ leftArc }" id="la-path" />
+	${ entireInfinity.svgPath(f) }
 </defs>
 	<mask id="ra-mask">
 		<use xlink:href="#ra-path" fill="white" />
@@ -239,21 +206,13 @@ svg {
 <g id="ribbon" transform="translate(${ hw } ${ hh })">
 	<use xlink:href="#ew-path" id="ew" class="line part" />
 	<use xlink:href="#we-path" id="we" class="line part" />
-	<foreignObject x="${ hd - ew - ht }" y="${ -eh - ht }" width="${ ew * 2 + th }" height="${ eh * 2 + th }" mask="url(#ra-mask)">
+	<foreignObject x="${ halfDistance - ellipseWidth - halfThickness }" y="${ -ellipseHeight - halfThickness }" width="${ ellipseWidth * 2 + thickness }" height="${ ellipseHeight * 2 + thickness }" mask="url(#ra-mask)">
 		<div class="ra-colors" xmlns="http://www.w3.org/1999/xhtml" />
 	</foreignObject>
-	<foreignObject x="${ -hd - ew - ht }" y="${ -eh - ht }" width="${ ew * 2 + th }" height="${ eh * 2 + th }" mask="url(#la-mask)">
+	<foreignObject x="${ -halfDistance - ellipseWidth - halfThickness }" y="${ -ellipseHeight - halfThickness }" width="${ ellipseWidth * 2 + thickness }" height="${ ellipseHeight * 2 + thickness }" mask="url(#la-mask)">
 		<div class="la-colors" xmlns="http://www.w3.org/1999/xhtml" />
 	</foreignObject>
 </g>
-<!--
-<text fill="red" x="3em" y="3em">
-<tspan>pl=${ f(pl) }; ep=${ f(ep) }; cc=${ f(Math.PI * 2 * this.ellipseWidth) }</tspan>
-<tspan x="3em" dy="2em">ef=${ f(ef) }; ll=${ f(ll) }</tspan>
-<tspan x="3em" dy="2em" fill="white">a1=${ f(Math.PI * 2 * Math.sqrt(((ew * ew) + (eh * eh)) / 2)) }</tspan>
-<tspan x="3em" dy="2em" fill="white">a2=${ f(Math.PI * ((3 * (ew + eh)) - Math.sqrt((3 * ew + eh) * (ew + 3 * eh)))) }</tspan>
-</text>
--->
 </svg>
 		`.trim();
 	}

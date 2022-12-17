@@ -2,13 +2,13 @@
 	"compilerOptions": {
 		"esModuleInterop": true,
 		"module": "ESNext",
-		"moduleResolution": "Node16",
+		"moduleResolution": "node",
 		"noImplicitAny": true,
-		"noImplicitOverride": true,
 		"noImplicitReturns": true,
 		"noImplicitThis": true,
 		"strict": true,
-		"target": "ESNext"
+		"target": "ESNext",
+		"outDir": "build"
 	},
 	"ts-node": {
 		"esm": true

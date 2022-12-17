@@ -6,3 +6,7 @@ node_modules/
 
 # Scratch
 .scratch/
+
+# Build artifacts
+build/
+dist/

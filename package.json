@@ -9,7 +9,7 @@
 		"@types/semver": "7.3.13",
 		"@typescript-eslint/eslint-plugin": "5.46.1",
 		"@typescript-eslint/parser": "5.46.1",
-		"eslint": "8.29.0",
+		"eslint": "8.30.0",
 		"eslint-import-resolver-typescript": "3.5.2",
 		"eslint-plugin-import": "2.26.0",
 		"eslint-plugin-n": "15.6.0",
@@ -33,10 +33,12 @@
 		"svg:256": "ts-node cli/infinity-symbol-path.ts -w 256",
 		"serve:svg": "nodemon --exec node --loader ts-node/esm serve/svg.ts",
 		"pretslab:install": "pip3.9 install jupyterlab jupyter",
-		"tslab:install": "tslab install"
+		"tslab:install": "tslab install",
+		"tsc": "tsc"
 	},
 	"engines": {
-		"node": ">= 16.0.0 < 17.0.0"
+		"node": ">= 18.12.1 < 19.0.0",
+		"npm": ">= 8.19.2 < 9.0.0"
 	},
 	"type": "module",
 	"version": "2022.11.6-T205227Z"
