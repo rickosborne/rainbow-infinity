@@ -1,60 +1,31 @@
-import { InfinitySegment } from './InfinitySegment.js';
-
-interface Options {
-	debug?: boolean;
-	ellipseDistance: number;
-	ellipseHeight: number;
-	ellipseWidth: number;
-	segmentCount?: number;
-	thickness: number;
-	viewHeight: number;
-	viewWidth: number;
-}
+import { InfinitySymbol } from './InfinitySymbol.js';
+import { givenFromOptions, GivenMetrics } from './Metrics.js';
+import { Options } from './Options.js';
 
 const DEGREES_PER_RADIAN = 180 / Math.PI;
 
 
 export class InfinitySymbolSvg {
 	protected readonly debug: boolean;
-	protected readonly ellipseDistance: number;
-	protected readonly ellipseHeight: number;
-	protected readonly ellipseWidth: number;
-	protected readonly halfDistance: number;
-	protected readonly halfHeight: number;
-	protected readonly halfWidth: number;
-	protected readonly intersectX: number;
-	protected readonly intersectY: number;
+	protected readonly infinitySymbol: InfinitySymbol;
+	protected readonly metrics: GivenMetrics;
 	protected readonly segmentCount: number;
-	protected readonly thickness: number;
-	protected readonly viewHeight: number;
-	protected readonly viewWidth: number;
 
 	constructor(
 		options: Options,
 	) {
 		console.log(options);
 		this.debug = !!options.debug;
-		this.ellipseDistance = options.ellipseDistance;
-		this.ellipseHeight = options.ellipseHeight;
-		this.ellipseWidth = options.ellipseWidth;
-		this.thickness = options.thickness;
-		this.viewHeight = options.viewHeight;
-		this.viewWidth = options.viewWidth;
-		this.halfDistance = this.ellipseDistance / 2;
-		this.halfHeight = this.viewHeight / 2;
-		this.halfWidth = this.viewWidth / 2;
-		// This is the point from the ellipse-centered origin
-		const rx = (this.ellipseWidth * this.ellipseWidth) / this.halfDistance;
-		// ... and this is from the ribbon-centered origin
-		this.intersectX = this.halfDistance - rx;
-		this.intersectY = Math.sqrt((this.ellipseHeight * this.ellipseHeight) * (1 - (rx * rx) / (this.ellipseWidth * this.ellipseWidth)));
 		this.segmentCount = options.segmentCount || 20;
+		this.metrics = givenFromOptions(options);
+		this.infinitySymbol = new InfinitySymbol('ribbon', this.metrics);
 	}
 
 	get validationProblems(): string[] {
 		const problems = [];
-		if (this.ellipseDistance <= (this.ellipseWidth * 2)) {
-			problems.push(`ellipseDistance (${ this.ellipseDistance }) must be > ellipseWidth (${ this.ellipseWidth }) * 2`);
+		const metrics: GivenMetrics = this.metrics;
+		if (metrics.ellipseDistance <= (metrics.ellipseWidth * 2)) {
+			problems.push(`ellipseDistance (${ metrics.ellipseDistance }) must be > ellipseWidth (${ metrics.ellipseWidth }) * 2`);
 		}
 		return problems;
 	}
@@ -65,6 +36,7 @@ export class InfinitySymbolSvg {
 
 	toString(): string {
 		const problems = this.validationProblems;
+		const metrics = this.infinitySymbol.metrics;
 		if (problems.length > 0) {
 			return `
 <svg xmlns="http://www.w3.org/2000/svg" stroke="none" fill="none" viewBox="0 0 500 500">
@@ -76,27 +48,19 @@ ${ problems.map(p => `<tspan dy="2em" x="3em">${ p }</tspan>`).join('\n') }
 			`;
 		}
 		const f = InfinitySymbolSvg.fixed;
-		const ellipseWidth: number = f(this.ellipseWidth);
-		const ellipseHeight: number = f(this.ellipseHeight);
-		const halfDistance: number = f(this.halfDistance);
-		const intersectX: number = f(this.intersectX);
-		const intersectY: number = f(this.intersectY);
-		const thickness = f(this.thickness);  // rounded thickness
-		const halfThickness = f(this.thickness / 2);  // half thickness
-		const lineRadians = Math.atan(this.intersectY / (halfDistance - this.intersectX));
+		const ellipseWidth: number = f(metrics.ellipseWidth);
+		const ellipseHeight: number = f(metrics.ellipseHeight);
+		const halfDistance: number = f(metrics.halfDistance);
+		const intersectX: number = f(metrics.intersectX);
+		const intersectY: number = f(metrics.intersectY);
+		const thickness = f(metrics.thickness);  // rounded thickness
+		const halfThickness = f(metrics.thickness / 2);  // half thickness
+		const lineRadians = Math.atan(metrics.intersectY / (halfDistance - metrics.intersectX));
 		const lineDegrees = f(lineRadians * DEGREES_PER_RADIAN);
-		const avw = f(this.ellipseDistance + 2 * (this.ellipseWidth + this.thickness));
-		const avh = f(2 * (this.ellipseHeight + this.thickness));
+		const avw = f(metrics.ellipseDistance + 2 * (metrics.ellipseWidth + metrics.thickness));
+		const avh = f(2 * (metrics.ellipseHeight + metrics.thickness));
 		const hw: number = f(avw / 2);  // half width
 		const hh: number = f(avh / 2);  // half height
-		const entireInfinity = new InfinitySegment('ribbon', {
-			ellipseHeight,
-			ellipseWidth,
-			halfDistance,
-			intersectX,
-			intersectY,
-			thickness,
-		});
 		return `
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 ${ avw } ${ avh }">
 <style>/* <![CDATA[ */
@@ -194,7 +158,7 @@ svg {
 		<stop offset="0" stop-color="hwb(180 0% 0%)" id="ew-start" />
 		<stop offset="1" stop-color="hwb(260 0% 0%)" id="ew-end" />
 	</linearGradient>
-	${ entireInfinity.svgPath(f) }
+	${ this.infinitySymbol.svgPath(f) }
 </defs>
 	<mask id="ra-mask">
 		<use xlink:href="#ra-path" fill="white" />
